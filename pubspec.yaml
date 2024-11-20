@@ -1,0 +1,35 @@
+name: chap22
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.5.3
+
+dependencies:
+  path_provider : 2.1.4
+  camera : 0.11.0+2
+  firebase_auth: ^5.3.1
+  firebase_core: ^3.6.0
+  firebase_storage: ^12.3.2
+  cloud_firestore: ^5.4.3
+  flutter:
+    sdk: flutter
+  http: ^0.13.3 # 콜론(:)과 ^ 사이의 공백을 제거해야 합니다
+  speech_to_text : ^7.0.0
+  file_picker : ^8.1.2
+  provider: ^6.1.2
+  video_player: ^2.9.2
+  permission_handler: ^11.3.1
+  dio: ^5.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  
+
+flutter:
+  uses-material-design: true
+  assets:
+    - images/ring.jpg
