@@ -21,7 +21,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         setState(() {});
         _controller.play();
       }).catchError((e) {
-        print("Error playing video: $e");
+        print("Error playing video: \$e");
       });
   }
 
@@ -47,66 +47,95 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       ),
       body: GestureDetector(
         onTap: _toggleControlsVisibility,
-        child: Center(
-          child: _controller.value.isInitialized
-              ? Column(
-                  children: [
-                    // 동영상 위치를 상단으로 고정
-                    AspectRatio(
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 동영상을 상단에 고정하고 원본 비율 유지
+                if (_controller.value.isInitialized)
+                  Container(
+                    width: double.infinity,
+                    child: AspectRatio(
                       aspectRatio: _controller.value.aspectRatio,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12.0),
-                        child: VideoPlayer(_controller),
-                      ),
+                      child: VideoPlayer(_controller),
                     ),
-                    if (_showControls)
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            VideoProgressIndicator(
-                              _controller,
-                              allowScrubbing: true,
-                              colors: VideoProgressColors(
-                                playedColor: Colors.deepPurple,
-                                backgroundColor: Colors.grey.shade300,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                IconButton(
-                                  icon: Icon(
-                                    _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
-                                    color: Colors.deepPurple,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _controller.value.isPlaying
-                                          ? _controller.pause()
-                                          : _controller.play();
-                                    });
-                                  },
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.stop, color: Colors.red),
-                                  onPressed: () {
-                                    setState(() {
-                                      _controller.pause();
-                                      _controller.seekTo(Duration.zero);
-                                    });
-                                  },
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 20),
-                          ],
+                  ),
+                const SizedBox(height: 20),
+              ],
+            ),
+            // Topic/Comment를 중하단에 고정된 위치에 출력
+            Align(
+              alignment: Alignment(0.0, 0.5), // 화면 중간에 위치
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      "Topic: Example Topic",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      "Comment: Example comment related to the topic.",
+                      style: TextStyle(fontSize: 14),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (_showControls)
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Opacity(
+                      opacity: 0.5, // 재생바를 투명하게 설정
+                      child: VideoProgressIndicator(
+                        _controller,
+                        allowScrubbing: true,
+                        colors: VideoProgressColors(
+                          playedColor: Colors.deepPurple,
+                          backgroundColor: Colors.grey.shade300,
                         ),
                       ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
+                            color: Colors.deepPurple,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _controller.value.isPlaying ? _controller.pause() : _controller.play();
+                            });
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.stop, color: Colors.red),
+                          onPressed: () {
+                            setState(() {
+                              _controller.pause();
+                              _controller.seekTo(Duration.zero);
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
                   ],
-                )
-              : const CircularProgressIndicator(),
+                ),
+              ),
+          ],
         ),
       ),
     );

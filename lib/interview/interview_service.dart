@@ -34,7 +34,7 @@ class InterviewService {
           String downloadUrl = resumeDoc['downloadURL'];
 
           final response = await http.post(
-            Uri.parse('http://223.194.136.234:5000/generate-questions'),
+            Uri.parse('http://223.194.138.140:5000/generate-questions'),
             headers: {'Content-Type': 'application/json'},
             body: json.encode({'resumeUrl': downloadUrl}),
           );

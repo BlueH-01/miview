@@ -43,7 +43,7 @@ Future<List<String>> createQuestion(String? resumeId) async {
 
         // Flask 서버에 질문 요청
         final response = await http.post(
-          Uri.parse('http://223.194.153.150:5000//generate-questions'),
+          Uri.parse('http://223.194.138.140:5000//generate-questions'),
           headers: {
             'Content-Type': 'application/json',
           },

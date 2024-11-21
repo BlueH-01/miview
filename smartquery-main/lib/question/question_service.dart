@@ -76,7 +76,7 @@ class QuestionService {
 
     try {
       final response = await http.post(
-        Uri.parse('http://223.194.153.150:5000/generate-questions'), 
+        Uri.parse('http://223.194.138.140:5000/generate-questions'), 
         headers: {'Content-Type': 'application/json'},
         body: json.encode({'pdf_url': pdfUrl}),
       );
