@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import '../configure/palette.dart';
 import '../firebase/firesbase_init.dart';
 
-
-class LoginSignupScreen extends StatefulWidget { 
+class LoginSignupScreen extends StatefulWidget {
   const LoginSignupScreen({super.key});
 
   @override
@@ -41,52 +40,34 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
               top: 0,
               right: 0,
               left: 0,
+              bottom: 0,
               child: Container(
-                height: 300,
                 decoration: const BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage('images/ring.jpg'),
-                    fit: BoxFit.fill,
+                    image: AssetImage('images/backg.jpg'),
+                    fit: BoxFit.cover,
                   ),
                 ),
                 child: Container(
-                  padding: const EdgeInsets.only(top: 90, left: 20),
+                  padding: const EdgeInsets.only(top: 200, left: 20, right: 20),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       RichText(
-                        text: TextSpan(
-                          text: 'Welcome ',
-                          style: const TextStyle(
-                            letterSpacing: 1.0,
-                            fontSize: 25,
-                            color: Colors.white,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: isSignupScreen ? 'to our app!' : ' back',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.0,
-                                fontSize: 25,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
+                        textAlign: TextAlign.center,
+                        text: const TextSpan(
+                          text: 'My InterViewer',
+                          style: TextStyle(
+                              fontFamily: 'Serif',
+                              letterSpacing: 1.0,
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromARGB(145, 0, 0, 0)),
                         ),
                       ),
                       const SizedBox(
                         height: 5,
                       ),
-                      Text(
-                        isSignupScreen
-                            ? 'Sign up to continue!'
-                            : 'Signin to continue',
-                        style: const TextStyle(
-                          letterSpacing: 1.0,
-                          color: Colors.white,
-                        ),
-                      )
                     ],
                   ),
                 ),
@@ -96,7 +77,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
             AnimatedPositioned(
               duration: const Duration(milliseconds: 500),
               curve: Curves.easeIn,
-              top: 180,
+              top: 330, //로그인 박스 위치
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 500),
                 curve: Curves.easeIn,
@@ -130,13 +111,14 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                             child: Column(
                               children: [
                                 Text(
-                                  'LOGIN',
+                                  '로그인',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                     color: !isSignupScreen
-                                        ? Palette.activeColor
-                                        : Palette.textColor1,
+                                        ? const Color.fromARGB(
+                                            145, 0, 0, 0) //선택시
+                                        : Colors.grey, //선택 안했을시
                                   ),
                                 ),
                                 if (!isSignupScreen)
@@ -144,7 +126,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                     margin: const EdgeInsets.only(top: 3),
                                     height: 2,
                                     width: 55,
-                                    color: Colors.orange,
+                                    color: Colors.grey, //선택시 밑줄
                                   )
                               ],
                             ),
@@ -158,13 +140,14 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                             child: Column(
                               children: [
                                 Text(
-                                  'SIGNUP',
+                                  '회원 가입',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                     color: isSignupScreen
-                                        ? Palette.activeColor
-                                        : Palette.textColor1,
+                                        ? const Color.fromARGB(
+                                            145, 0, 0, 0) //선택시
+                                        : Colors.grey, //선택 안했을시
                                   ),
                                 ),
                                 if (isSignupScreen) //if inline!
@@ -172,7 +155,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                     margin: const EdgeInsets.only(top: 3),
                                     height: 2,
                                     width: 55,
-                                    color: Colors.orange,
+                                    color: Colors.grey,
                                   )
                               ],
                             ),
@@ -181,7 +164,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                       ),
                       if (isSignupScreen)
                         Container(
-                          margin:const  EdgeInsets.only(top: 20),
+                          margin: const EdgeInsets.only(top: 20),
                           child: Form(
                             key: _formKey,
                             child: Column(
@@ -189,10 +172,11 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                 TextFormField(
                                   key: const Key('username'),
                                   validator: (value) {
-                                    if (value!.isEmpty || value.length < 4)
-                                      {return 'Please enter at least 4 characters';}
-                                    else
-                                      {return null;}
+                                    if (value!.isEmpty || value.length < 4) {
+                                      return 'Please enter at least 4 characters';
+                                    } else {
+                                      return null;
+                                    }
                                   },
                                   onSaved: (value) {
                                     userName = value!;
@@ -203,11 +187,13 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                   decoration: const InputDecoration(
                                       prefixIcon: Icon(
                                         Icons.account_circle,
-                                        color: Palette.iconColor,
+                                        color: Color.fromARGB(
+                                            145, 0, 0, 0), //사용자아이콘
                                       ),
                                       enabledBorder: OutlineInputBorder(
                                         borderSide: BorderSide(
-                                          color: Palette.textColor1,
+                                          color: Color.fromARGB(
+                                              145, 0, 0, 0), //테두리
                                         ),
                                         borderRadius: BorderRadius.all(
                                           Radius.circular(35.0),
@@ -215,16 +201,16 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                       ),
                                       focusedBorder: OutlineInputBorder(
                                         borderSide: BorderSide(
-                                          color: Palette.textColor1,
+                                          color: Color.fromARGB(145, 0, 0, 0),
                                         ),
                                         borderRadius: BorderRadius.all(
                                           Radius.circular(35.0),
                                         ),
                                       ),
-                                      hintText: 'User name',
+                                      hintText: '이름',
                                       hintStyle: TextStyle(
                                         fontSize: 14,
-                                        color: Palette.textColor1,
+                                        color: Colors.grey,
                                       ),
                                       contentPadding: EdgeInsets.all(10)),
                                 ),
@@ -235,10 +221,12 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                   keyboardType: TextInputType.emailAddress,
                                   key: const Key('email'),
                                   validator: (value) {
-                                    if (value!.isEmpty || !value.contains('@'))
-                                      {return 'Please enter a valid email address';}
-                                    else
-                                      {return null;}
+                                    if (value!.isEmpty ||
+                                        !value.contains('@')) {
+                                      return 'Please enter a valid email address';
+                                    } else {
+                                      return null;
+                                    }
                                   },
                                   onSaved: (value) {
                                     userEmail = value!;
@@ -249,11 +237,11 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                   decoration: const InputDecoration(
                                       prefixIcon: Icon(
                                         Icons.account_circle,
-                                        color: Palette.iconColor,
+                                        color: Color.fromARGB(145, 0, 0, 0),
                                       ),
                                       enabledBorder: OutlineInputBorder(
                                         borderSide: BorderSide(
-                                          color: Palette.textColor1,
+                                          color: Color.fromARGB(145, 0, 0, 0),
                                         ),
                                         borderRadius: BorderRadius.all(
                                           Radius.circular(35.0),
@@ -261,16 +249,16 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                       ),
                                       focusedBorder: OutlineInputBorder(
                                         borderSide: BorderSide(
-                                          color: Palette.textColor1,
+                                          color: Color.fromARGB(145, 0, 0, 0),
                                         ),
                                         borderRadius: BorderRadius.all(
                                           Radius.circular(35.0),
                                         ),
                                       ),
-                                      hintText: 'Email',
+                                      hintText: '이메일',
                                       hintStyle: TextStyle(
                                         fontSize: 14,
-                                        color: Palette.textColor1,
+                                        color: Colors.grey,
                                       ),
                                       contentPadding: EdgeInsets.all(10)),
                                 ),
@@ -281,10 +269,11 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                   obscureText: true,
                                   key: const Key('password'),
                                   validator: (value) {
-                                    if (value!.isEmpty || value.length < 6)
-                                      {return 'Please enter at least 7 characters long';}
-                                    else
-                                      {return null;}
+                                    if (value!.isEmpty || value.length < 6) {
+                                      return 'Please enter at least 7 characters long';
+                                    } else {
+                                      return null;
+                                    }
                                   },
                                   onSaved: (value) {
                                     userPassword = value!;
@@ -295,11 +284,11 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                   decoration: const InputDecoration(
                                       prefixIcon: Icon(
                                         Icons.account_circle,
-                                        color: Palette.iconColor,
+                                        color: Color.fromARGB(145, 0, 0, 0),
                                       ),
                                       enabledBorder: OutlineInputBorder(
                                         borderSide: BorderSide(
-                                          color: Palette.textColor1,
+                                          color: Color.fromARGB(145, 0, 0, 0),
                                         ),
                                         borderRadius: BorderRadius.all(
                                           Radius.circular(35.0),
@@ -307,16 +296,16 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                       ),
                                       focusedBorder: OutlineInputBorder(
                                         borderSide: BorderSide(
-                                          color: Palette.textColor1,
+                                          color: Color.fromARGB(145, 0, 0, 0),
                                         ),
                                         borderRadius: BorderRadius.all(
                                           Radius.circular(35.0),
                                         ),
                                       ),
-                                      hintText: 'Password',
+                                      hintText: '비밀번호',
                                       hintStyle: TextStyle(
                                         fontSize: 14,
-                                        color: Palette.textColor1,
+                                        color: Colors.grey,
                                       ),
                                       contentPadding: EdgeInsets.all(10)),
                                 ),
@@ -334,10 +323,12 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                 TextFormField(
                                   key: const Key('login_email'),
                                   validator: (value) {
-                                    if (value!.isEmpty || !value.contains('@'))
-                                      {return 'Please enter a valid email address';}
-                                    else
-                                      {return null;}
+                                    if (value!.isEmpty ||
+                                        !value.contains('@')) {
+                                      return 'Please enter a valid email address';
+                                    } else {
+                                      return null;
+                                    }
                                   },
                                   onSaved: (value) {
                                     userEmail = value!;
@@ -348,11 +339,11 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                   decoration: const InputDecoration(
                                     prefixIcon: Icon(
                                       Icons.account_circle,
-                                      color: Palette.iconColor,
+                                      color: Color.fromARGB(145, 0, 0, 0),
                                     ),
                                     enabledBorder: OutlineInputBorder(
                                       borderSide: BorderSide(
-                                        color: Palette.textColor1,
+                                        color: Color.fromARGB(145, 0, 0, 0),
                                       ),
                                       borderRadius: BorderRadius.all(
                                         Radius.circular(35.0),
@@ -360,16 +351,16 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderSide: BorderSide(
-                                        color: Palette.textColor1,
+                                        color: Color.fromARGB(145, 0, 0, 0),
                                       ),
                                       borderRadius: BorderRadius.all(
                                         Radius.circular(35.0),
                                       ),
                                     ),
-                                    hintText: 'Email',
+                                    hintText: '이메일',
                                     hintStyle: TextStyle(
                                       fontSize: 14,
-                                      color: Palette.textColor1,
+                                      color: Colors.grey,
                                     ),
                                     contentPadding: EdgeInsets.all(10),
                                   ),
@@ -379,10 +370,11 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                   obscureText: true,
                                   key: const Key('login_password'),
                                   validator: (value) {
-                                    if (value!.isEmpty || value.length < 6)
-                                      {return 'Please enter at least 7 characters long';}
-                                    else
-                                      {return null;}
+                                    if (value!.isEmpty || value.length < 6) {
+                                      return 'Please enter at least 7 characters long';
+                                    } else {
+                                      return null;
+                                    }
                                   },
                                   onSaved: (value) {
                                     userPassword = value!;
@@ -393,11 +385,11 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                   decoration: const InputDecoration(
                                     prefixIcon: Icon(
                                       Icons.lock, // 비밀번호 필드에는 일반적으로 자물쇠 아이콘을 사용
-                                      color: Palette.iconColor,
+                                      color: Color.fromARGB(145, 0, 0, 0),
                                     ),
                                     enabledBorder: OutlineInputBorder(
                                       borderSide: BorderSide(
-                                        color: Palette.textColor1,
+                                        color: Color.fromARGB(145, 0, 0, 0),
                                       ),
                                       borderRadius: BorderRadius.all(
                                         Radius.circular(35.0),
@@ -405,21 +397,22 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderSide: BorderSide(
-                                        color: Palette.textColor1,
+                                        color: Color.fromARGB(145, 0, 0, 0),
                                       ),
                                       borderRadius: BorderRadius.all(
                                         Radius.circular(35.0),
                                       ),
                                     ),
-                                    hintText: 'Password',
+                                    hintText: '비밀번호',
                                     hintStyle: TextStyle(
                                       fontSize: 14,
-                                      color: Palette.textColor1,
+                                      color: Colors.grey,
                                     ),
                                     contentPadding: EdgeInsets.all(10),
                                   ),
                                 ),
-                                const SizedBox(height: 8), // 로그인 상태에서 필드 간 여백을 조정
+                                const SizedBox(
+                                    height: 8), // 로그인 상태에서 필드 간 여백을 조정
                               ],
                             ),
                           ),
@@ -433,17 +426,16 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
             AnimatedPositioned(
               duration: const Duration(milliseconds: 500),
               curve: Curves.easeIn,
-              top: isSignupScreen ? 420.0 : 380.0,
+              top: isSignupScreen ? 548 : 500.0,
               right: 0,
-              left: 0,
+              left: 245,
               child: Center(
                 child: Container(
                   padding: const EdgeInsets.all(15),
-                  height: 90,
-                  width: 90,
-                  decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(50)),
+                  height: 77, //로그인 화살표
+                  width: 77,
+                  decoration:
+                      BoxDecoration(borderRadius: BorderRadius.circular(50)),
                   child: GestureDetector(
                     onTap: () async {
                       if (isSignupScreen) {
@@ -464,7 +456,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content:
-                                 Text('Please check your email and password'),
+                                  Text('Please check your email and password'),
                               backgroundColor: Colors.blue,
                             ),
                           );
@@ -501,8 +493,8 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                       decoration: BoxDecoration(
                           gradient: const LinearGradient(
                               colors: [
-                                Colors.orange,
-                                Colors.red,
+                                Colors.grey,
+                                Colors.white,
                               ],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight),
@@ -512,7 +504,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                               color: Colors.black.withOpacity(0.3),
                               spreadRadius: 1,
                               blurRadius: 1,
-                              offset: Offset(0, 1),
+                              offset: const Offset(0, 1),
                             ),
                           ]),
                       child: const Icon(
@@ -525,38 +517,6 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
               ),
             ),
             //전송 버튼
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 500),
-              curve: Curves.easeIn,
-              top: isSignupScreen
-                  ? MediaQuery.of(context).size.height - 125
-                  : MediaQuery.of(context).size.height - 165,
-              right: 0,
-              left: 0,
-              child: Column(
-                children: [
-                  Text(isSignupScreen ? 'or signup with' : 'or Signin with'),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  TextButton.icon(
-                    onPressed: () {},
-                    style: TextButton.styleFrom(
-                      backgroundColor: Palette.googleColor,
-                      minimumSize: const Size(155, 40),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                    ),
-                    icon: const Icon(Icons.add),
-                    label: const Text(
-                      'Google',
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            //구글로그인버튼
             // 추가적인 UI 구성 요소가 필요할 경우 이곳에 추가
           ],
         ),
