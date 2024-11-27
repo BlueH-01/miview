@@ -8,7 +8,7 @@ import 'videoplayer_screen.dart'; // 새로 만든 동영상 페이지
 
 class InterviewScreen extends StatefulWidget {
   final String resumeId;
-  const InterviewScreen({Key? key, required this.resumeId}) : super(key: key);
+  const InterviewScreen({super.key, required this.resumeId});
 
   @override
   _InterviewScreenState createState() => _InterviewScreenState();
@@ -21,7 +21,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
   int currentQuestionIndex = 0;
   bool isRecording = false;
   bool cameraInitialized = false;
-  bool _isDownloading = false;
+  final bool _isDownloading = false;
   List<String> topics = []; // topics 리스트 (topic1 ~ topic5)
   List<String> questions = []; // questions 리스트 (question1 ~ question5)
   List<String> videoUrls = [];
@@ -65,7 +65,8 @@ class _InterviewScreenState extends State<InterviewScreen> {
       DocumentReference questionDocRef = questionSnapshot.docs.first.reference;
 
       // Topic 데이터 가져오기
-      QuerySnapshot topicSnapshot = await questionDocRef.collection('topic').get();
+      QuerySnapshot topicSnapshot =
+          await questionDocRef.collection('topic').get();
       if (topicSnapshot.docs.isNotEmpty) {
         DocumentSnapshot topicDoc = topicSnapshot.docs.first;
         for (int i = 1; i <= 5; i++) {
@@ -78,12 +79,14 @@ class _InterviewScreenState extends State<InterviewScreen> {
       }
 
       // Question 데이터 가져오기
-      QuerySnapshot commentSnapshot = await questionDocRef.collection('comment').get();
+      QuerySnapshot commentSnapshot =
+          await questionDocRef.collection('comment').get();
       if (commentSnapshot.docs.isNotEmpty) {
         DocumentSnapshot commentDoc = commentSnapshot.docs.first;
         for (int i = 1; i <= 5; i++) {
           String questionKey = 'question$i';
-          questions.add(commentDoc[questionKey] ?? ''); // questions에 question1~5를 추가
+          questions
+              .add(commentDoc[questionKey] ?? ''); // questions에 question1~5를 추가
         }
       } else {
         print("Comment document does not exist");
@@ -132,7 +135,8 @@ class _InterviewScreenState extends State<InterviewScreen> {
         print("videoUrls length after add: ${videoUrls.length}");
 
         setState(() {
-          currentQuestionIndex = videoUrls.length; // update currentQuestionIndex to match the new 1-based indexing
+          currentQuestionIndex = videoUrls
+              .length; // update currentQuestionIndex to match the new 1-based indexing
           isRecording = false;
         });
       } else {
@@ -151,9 +155,25 @@ class _InterviewScreenState extends State<InterviewScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(currentQuestionIndex < topics.length ? '${topics[currentQuestionIndex]}' : 'Result'),
+        title: Text(
+          currentQuestionIndex < topics.length
+              ? topics[currentQuestionIndex]
+              : 'Result',
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+            color: Colors.white, // 단색 흰색으로 설정
+            shadows: [
+              Shadow(
+                blurRadius: 4.0,
+                color: Colors.black38,
+                offset: Offset(2.0, 2.0),
+              ),
+            ],
+          ),
+        ),
         centerTitle: true,
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: Colors.grey.shade800,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -162,33 +182,58 @@ class _InterviewScreenState extends State<InterviewScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    "${questions[currentQuestionIndex]}",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
+                  Container(
+                    padding: const EdgeInsets.all(16.0),
+                    margin: const EdgeInsets.symmetric(vertical: 8.0),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12.0),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 8.0,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
+                      border: Border.all(color: Colors.grey, width: 2),
+                    ),
+                    child: Text(
+                      questions[currentQuestionIndex],
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   cameraInitialized
                       ? Expanded(
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(12),
-                            child: CameraPreview(_interviewService.cameraController!),
+                            child: CameraPreview(
+                                _interviewService.cameraController!),
                           ),
                         )
-                      : Center(child: CircularProgressIndicator()),
-                  SizedBox(height: 20),
-                  ElevatedButton(
+                      : const Center(child: CircularProgressIndicator()),
+                  const SizedBox(height: 20),
+                  ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: isRecording ? Colors.red : Colors.deepPurple,
+                      backgroundColor: isRecording ? Colors.red : Colors.grey,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      padding: EdgeInsets.symmetric(vertical: 16),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
                     onPressed: recordAnswer,
-                    child: Text(
-                      isRecording ? "Stop Recording" : "Start Recording",
-                      style: TextStyle(fontSize: 16, color: Colors.white),
+                    icon: Icon(
+                      isRecording ? Icons.stop : Icons.videocam,
+                      color: Colors.white,
+                    ),
+                    label: Text(
+                      isRecording ? "녹화 중지" : "녹화 시작",
+                      style: const TextStyle(fontSize: 16, color: Colors.white),
                     ),
                   ),
                 ],
@@ -199,12 +244,13 @@ class _InterviewScreenState extends State<InterviewScreen> {
                     itemBuilder: (context, index) {
                       return Card(
                         elevation: 4,
-                        margin: EdgeInsets.symmetric(vertical: 8),
+                        margin: const EdgeInsets.symmetric(vertical: 8),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: ListTile(
-                          leading: Icon(Icons.play_circle_fill, color: Colors.deepPurple, size: 36),
+                          leading: const Icon(Icons.play_circle_fill,
+                              color: Colors.deepPurple, size: 36),
                           title: Text("Play Video ${index + 1}"),
                           onTap: () {
                             Navigator.push(
@@ -220,7 +266,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
                       );
                     },
                   )
-                : Center(
+                : const Center(
                     child: CircularProgressIndicator(),
                   ),
       ),

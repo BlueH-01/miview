@@ -5,7 +5,7 @@ import '../firebase/firesbase_init.dart';
 
 class QuestionScreen extends StatefulWidget {
   final String resumeId;
-  const QuestionScreen({Key? key, required this.resumeId}) : super(key: key);
+  const QuestionScreen({super.key, required this.resumeId});
 
   @override
   _QuestionScreenState createState() => _QuestionScreenState();
@@ -20,7 +20,7 @@ class _QuestionScreenState extends State<QuestionScreen> {
   @override
   void initState() {
     super.initState();
-    print("initState called, resumeId: \${widget.resumeId}, userId: \$userId"); // 디버깅: 초기 상태 출력
+    print("initState called, resumeId: \${widget.resumeId}, userId: \$userId");
   }
 
   // 질문 생성 함수
@@ -46,40 +46,67 @@ class _QuestionScreenState extends State<QuestionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Generated Questions'),
-        backgroundColor: Colors.deepPurple,
+        title: const Text(
+          '질문 생성',
+          style: TextStyle(
+            fontWeight: FontWeight.bold, // 굵게 설정
+            fontSize: 22, // 크기 조정
+            color: Colors.white, // 제목 색상 설정
+          ),
+        ),
+        backgroundColor: Colors.grey.shade800,
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.add, color: Colors.white),
+            icon: const Icon(Icons.autorenew, color: Colors.white),
             onPressed: () async {
-              print("Add button pressed. Generating questions...");
+              print("질문 생성중..");
               await _generateQuestions(); // 새로운 질문 생성
             },
           ),
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
           : StreamBuilder<List<Map<String, String>>>(
               stream: _questionService.getQuestions(widget.resumeId),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
                 }
 
                 if (snapshot.hasError) {
-                  return const Center(child: Text('Error loading questions'));
+                  return const Center(
+                    child: Text(
+                      'Error loading questions',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  );
                 }
 
                 final combinedData = snapshot.data;
 
                 if (combinedData == null || combinedData.isEmpty) {
                   return const Center(
-                    child: Text(
-                      'No questions available. Press the add button to generate new questions.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 18),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 48,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          'No questions available.\nPress the add button to generate new questions.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 18, color: Colors.grey),
+                        ),
+                      ],
                     ),
                   );
                 }
@@ -94,18 +121,24 @@ class _QuestionScreenState extends State<QuestionScreen> {
 
                       return Card(
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                         ),
                         elevation: 4,
-                        margin: const EdgeInsets.symmetric(vertical: 8),
+                        margin: const EdgeInsets.symmetric(vertical: 12),
                         child: ListTile(
-                          contentPadding: const EdgeInsets.all(16.0),
-                          leading: const Icon(Icons.question_answer, color: Colors.deepPurple, size: 32),
+                          contentPadding: const EdgeInsets.symmetric(
+                              vertical: 16, horizontal: 20),
+                          leading: CircleAvatar(
+                            backgroundColor: Colors.grey[300],
+                            child: const Icon(Icons.question_answer,
+                                color: Color.fromARGB(145, 0, 0, 0)),
+                          ),
                           title: Text(
                             topic,
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 18,
+                              color: Colors.black87,
                             ),
                           ),
                           subtitle: Padding(
@@ -114,10 +147,10 @@ class _QuestionScreenState extends State<QuestionScreen> {
                               question,
                               style: const TextStyle(
                                 fontSize: 16,
+                                color: Colors.black54,
                               ),
                             ),
                           ),
-                          
                         ),
                       );
                     },

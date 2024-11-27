@@ -95,16 +95,24 @@ class _ResumeListScreenState extends State<ResumeListScreen> {
         title: const Text(
           '이력서 목록',
           style: TextStyle(
-            fontWeight: FontWeight.bold, // 굵게 설정
+            fontWeight: FontWeight.bold,
             fontSize: 23,
+            color: Colors.white, // 글씨를 흰색으로 설정
+            shadows: [
+              Shadow(
+                blurRadius: 4.0,
+                color: Colors.black38,
+                offset: Offset(2.0, 2.0),
+              ),
+            ],
           ),
         ),
-        centerTitle: true, // 타이틀을 가운데 정렬
+        centerTitle: true,
+        backgroundColor: Colors.grey.shade800,
       ),
       body: loggedUser != null
           ? Column(
               children: [
-                // SizedBox로 여백 추가
                 const SizedBox(height: 20), // 제목과 리스트 사이의 여백
                 Expanded(
                   child: StreamBuilder<List<PlatformFile>>(
@@ -155,26 +163,25 @@ class _ResumeListScreenState extends State<ResumeListScreen> {
                                   ),
                                   onTap: () {
                                     setState(() {
-                                      _selectedIndex = index; // 선택된 인덱스 저장
+                                      _selectedIndex = index;
                                     });
                                   },
                                   tileColor: _selectedIndex == index
                                       ? Colors.grey[300]
-                                      : null, // 선택된 타일 배경색 변경
+                                      : null,
                                   trailing: _selectedIndex == index
                                       ? SingleChildScrollView(
                                           child: Column(
                                             children: [
                                               ElevatedButton(
                                                 onPressed: () {
-                                                  // 이력서 ID 가져오기
                                                   String? resumeId =
                                                       resumes[index].identifier;
 
                                                   if (resumeId != null) {
                                                     print(resumeId);
                                                     navigateToQuestionScreen(
-                                                        resumeId); // 질문 페이지로 이동
+                                                        resumeId);
                                                   } else {
                                                     print(
                                                         'Error: resumeId is null');
@@ -189,14 +196,13 @@ class _ResumeListScreenState extends State<ResumeListScreen> {
                                               const SizedBox(height: 10),
                                               ElevatedButton(
                                                 onPressed: () {
-                                                  // 이력서 ID 가져오기
                                                   String? resumeId =
                                                       resumes[index].identifier;
 
                                                   if (resumeId != null) {
                                                     print(resumeId);
                                                     navigateToInterviewScreen(
-                                                        resumeId); // 면접 시작 페이지로 이동
+                                                        resumeId);
                                                   } else {
                                                     print(
                                                         'Error: resumeId is null');
@@ -225,9 +231,12 @@ class _ResumeListScreenState extends State<ResumeListScreen> {
             )
           : const Center(child: Text('Please log in to see your resumes.')),
       floatingActionButton: FloatingActionButton(
-        onPressed: pickAndUploadPDF, // 이력서 추가 버튼 연결
+        onPressed: pickAndUploadPDF,
         backgroundColor: Colors.grey,
-        child: const Icon(Icons.add),
+        child: const Icon(
+          Icons.add,
+          color: Colors.white,
+        ),
       ),
     );
   }

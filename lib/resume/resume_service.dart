@@ -10,10 +10,12 @@ import '../firebase/file_upload.dart';
 
 class ResumeService {
   List<PlatformFile> resumes = [];
-  final FileUploadService _fileUploadService = FileUploadService(); //fileupload 인스턴스 생성
+  final FileUploadService _fileUploadService =
+      FileUploadService(); //fileupload 인스턴스 생성
   final FirebaseStorage _storage = FirebaseInit().storage;
-  final FirebaseFirestore _firestore = FirebaseInit().firestore; //firebase관련 인스턴스생성
- 
+  final FirebaseFirestore _firestore =
+      FirebaseInit().firestore; //firebase관련 인스턴스생성
+
   // PDF 파일 선택
   Future<PlatformFile?> pickPDF() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -28,11 +30,10 @@ class ResumeService {
     print("No file selected or file picker was cancelled.");
     return null;
   }
-  
- Future<void> uploadPDF(PlatformFile file, String userId) async {
-  _fileUploadService.uploadResume(file, userId);
-}
 
+  Future<void> uploadPDF(PlatformFile file, String userId) async {
+    _fileUploadService.uploadResume(file, userId);
+  }
 
   // 유저의 이력서 목록 가져오기
   Stream<List<PlatformFile>> getUserResumes(String userId) {
@@ -40,7 +41,7 @@ class ResumeService {
         .collection('users')
         .doc(userId)
         .collection('resumes')
-        .orderBy('uploadTime', descending: true)
+        .orderBy('uploadTime', descending: false)
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) {
