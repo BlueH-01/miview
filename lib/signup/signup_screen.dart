@@ -27,6 +27,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Palette.backgroundColor,
@@ -53,16 +54,35 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
+                      Padding(
+                        padding:
+                            const EdgeInsets.only(right: 140), // My를 왼쪽으로 보내기
+                        child: RichText(
+                          textAlign: TextAlign.center,
+                          text: const TextSpan(
+                            text: 'My', // 첫 번째 줄
+                            style: TextStyle(
+                              fontFamily: 'Serif',
+                              letterSpacing: 1.0,
+                              fontSize: 44,
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromARGB(115, 0, 0, 0), // 흰색으로 변경
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 5), // 첫 번째 줄과 두 번째 줄 사이에 여백
                       RichText(
                         textAlign: TextAlign.center,
                         text: const TextSpan(
-                          text: 'My InterViewer',
+                          text: 'InterViewer', // 두 번째 줄
                           style: TextStyle(
-                              fontFamily: 'Serif',
-                              letterSpacing: 1.0,
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                              color: Color.fromARGB(145, 0, 0, 0)),
+                            fontFamily: 'Serif',
+                            letterSpacing: 1.0,
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Color.fromARGB(110, 0, 0, 0), // 흰색으로 변경
+                          ),
                         ),
                       ),
                       const SizedBox(
@@ -77,12 +97,12 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
             AnimatedPositioned(
               duration: const Duration(milliseconds: 500),
               curve: Curves.easeIn,
-              top: 330, //로그인 박스 위치
+              top: 350, //로그인 박스 위치
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 500),
                 curve: Curves.easeIn,
                 padding: const EdgeInsets.all(20),
-                height: isSignupScreen ? 280.0 : 240.0,
+                height: isSignupScreen ? 290.0 : 240.0, //박스 크기
                 width: MediaQuery.of(context).size.width - 40,
                 margin: const EdgeInsets.symmetric(horizontal: 20.0),
                 decoration: BoxDecoration(
@@ -236,7 +256,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                   },
                                   decoration: const InputDecoration(
                                       prefixIcon: Icon(
-                                        Icons.account_circle,
+                                        Icons.email,
                                         color: Color.fromARGB(145, 0, 0, 0),
                                       ),
                                       enabledBorder: OutlineInputBorder(
@@ -283,7 +303,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                   },
                                   decoration: const InputDecoration(
                                       prefixIcon: Icon(
-                                        Icons.account_circle,
+                                        Icons.lock,
                                         color: Color.fromARGB(145, 0, 0, 0),
                                       ),
                                       enabledBorder: OutlineInputBorder(
@@ -338,7 +358,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                   },
                                   decoration: const InputDecoration(
                                     prefixIcon: Icon(
-                                      Icons.account_circle,
+                                      Icons.email,
                                       color: Color.fromARGB(145, 0, 0, 0),
                                     ),
                                     enabledBorder: OutlineInputBorder(
@@ -426,14 +446,14 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
             AnimatedPositioned(
               duration: const Duration(milliseconds: 500),
               curve: Curves.easeIn,
-              top: isSignupScreen ? 548 : 500.0,
+              top: isSignupScreen ? 573 : 520.0,
               right: 0,
               left: 245,
               child: Center(
                 child: Container(
                   padding: const EdgeInsets.all(15),
-                  height: 77, //로그인 화살표
-                  width: 77,
+                  height: 70, //로그인 화살표
+                  width: 70,
                   decoration:
                       BoxDecoration(borderRadius: BorderRadius.circular(50)),
                   child: GestureDetector(
@@ -447,7 +467,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(builder: (context) {
-                                return ResumeListScreen();
+                                return const ResumeListScreen();
                               }),
                             );
                           }
@@ -473,7 +493,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(builder: (context) {
-                                return ResumeListScreen();
+                                return const ResumeListScreen();
                               }),
                             );
                           }
@@ -483,7 +503,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                             const SnackBar(
                               content:
                                   Text('Please check your email and password'),
-                              backgroundColor: Colors.blue,
+                              backgroundColor: Colors.grey,
                             ),
                           );
                         }
