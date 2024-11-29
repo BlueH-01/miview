@@ -34,7 +34,7 @@ class InterviewService {
           String downloadUrl = resumeDoc['downloadURL'];
 
           final response = await http.post(
-            Uri.parse('http://223.194.139.51:5000/generate-questions'),
+            Uri.parse('http://192.168.0.38:5000/generate-questions'),
             headers: {'Content-Type': 'application/json'},
             body: json.encode({'resumeUrl': downloadUrl}),
           );
@@ -122,53 +122,59 @@ class InterviewService {
     return null;
   }
 
-  // 비디오 업로드 메서드 - URL 반환하도록 설정
-Future<String> uploadVideoForInterview(
-  String userId, String? interviewId, XFile? videoFile, int currentQuestionIndex) async {
-  
-  // 인터뷰 ID 및 비디오 파일 유효성 검사
-  if (interviewId == null || interviewId.isEmpty) {
-    print("Error: interviewId is null or empty");
-    return '';
+  // 비디오 업로드 메서드 - URL 및 질문 저장
+  Future<String> uploadVideoForInterview(
+    String userId,
+    String? interviewId,
+    XFile? videoFile,
+    int currentQuestionIndex,
+    String question, // 추가된 질문 파라미터
+  ) async {
+    // 인터뷰 ID 및 비디오 파일 유효성 검사
+    if (interviewId == null || interviewId.isEmpty) {
+      print("Error: interviewId is null or empty");
+      return '';
+    }
+
+    if (videoFile == null) {
+      print("Error: videoFile is null");
+      return '';
+    }
+
+    try {
+      // Firebase Storage에 비디오 파일 업로드 경로 설정
+      File file = File(videoFile.path);
+      String filePath =
+          'users/$userId/interviews/$interviewId/videos/Answer$currentQuestionIndex.mp4';
+
+      Reference storageRef = _storage.ref().child(filePath);
+      UploadTask uploadTask = storageRef.putFile(
+        file,
+        SettableMetadata(contentType: 'video/mp4'), // MIME 유형 설정
+      );
+
+      // Firebase Storage에 비디오 파일 업로드
+      TaskSnapshot snapshot = await uploadTask;
+      String videoUrl = await snapshot.ref.getDownloadURL();
+      videoUrls.add(videoUrl); // 비디오 URL 리스트에 추가
+
+      // Firestore 인터뷰 문서에 비디오 URL 및 질문 저장
+      DocumentReference interviewDocRef = _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('interviews')
+          .doc(interviewId);
+
+      await interviewDocRef.update({
+        'videoUrl$currentQuestionIndex': videoUrl,
+        'question$currentQuestionIndex': question, // 질문 추가
+      });
+
+      print("Video and question saved successfully: $videoUrl, $question");
+      return videoUrl;
+    } catch (e) {
+      print("Error uploading video and saving question: $e");
+      return '';
+    }
   }
-
-  if (videoFile == null) {
-    print("Error: videoFile is null");
-    return '';
-  }
-
-  try {
-    // Firebase Storage에 비디오 파일 업로드 경로 설정
-    File file = File(videoFile.path);
-    String filePath = 'users/$userId/interviews/$interviewId/videos/Answer$currentQuestionIndex.mp4';
-
-    Reference storageRef = _storage.ref().child(filePath);
-    UploadTask uploadTask = storageRef.putFile(
-      file,
-      SettableMetadata(contentType: 'video/mp4'),  // MIME 유형 설정
-    );
-
-    // Firebase Storage에 비디오 파일 업로드
-    TaskSnapshot snapshot = await uploadTask;
-    String videoUrl = await snapshot.ref.getDownloadURL();
-    videoUrls.add(videoUrl); // 비디오 URL 리스트에 추가
-
-    // Firestore 인터뷰 문서에 비디오 URL 업데이트
-    DocumentReference interviewDocRef = _firestore
-        .collection('users')
-        .doc(userId)
-        .collection('interviews')
-        .doc(interviewId);
-
-    await interviewDocRef.update({
-      'videoUrl$currentQuestionIndex': videoUrl,
-    });
-
-    print("Video uploaded successfully: $videoUrl");
-    return videoUrl;
-  } catch (e) {
-    print("Error uploading video: $e");
-    return '';
-  }
-}
 }

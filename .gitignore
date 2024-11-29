@@ -12,6 +12,7 @@ migrate_working_dir/
 #API_KEY
 .env
 flask/.env
+assets/service_account.json
 # IntelliJ related
 *.iml
 *.ipr

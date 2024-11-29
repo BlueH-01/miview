@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:chap22/firebase/firesbase_init.dart';
 import 'package:camera/camera.dart';
 import './interview_service.dart';
-import 'videoplayer_screen.dart'; // 새로 만든 동영상 페이지
+import 'videoplayer_screen.dart';
 
 class InterviewScreen extends StatefulWidget {
   final String resumeId;
@@ -21,9 +21,10 @@ class _InterviewScreenState extends State<InterviewScreen> {
   int currentQuestionIndex = 0;
   bool isRecording = false;
   bool cameraInitialized = false;
-  final bool _isDownloading = false;
-  List<String> topics = []; // topics 리스트 (topic1 ~ topic5)
-  List<String> questions = []; // questions 리스트 (question1 ~ question5)
+  bool isUploading = false; // 업로드 상태 추가
+  bool isDisposed = false; // dispose 상태를 추적
+  List<String> topics = [];
+  List<String> questions = [];
   List<String> videoUrls = [];
 
   @override
@@ -44,9 +45,12 @@ class _InterviewScreenState extends State<InterviewScreen> {
       print("Interview created with ID: $interviewId");
     }
 
-    setState(() {
-      cameraInitialized = true;
-    });
+    await fetchVideoUrls();
+    if (!isDisposed) {
+      setState(() {
+        cameraInitialized = true;
+      });
+    }
   }
 
   Future<void> fetchQuestionsFromFirestore() async {
@@ -69,9 +73,9 @@ class _InterviewScreenState extends State<InterviewScreen> {
           await questionDocRef.collection('topic').get();
       if (topicSnapshot.docs.isNotEmpty) {
         DocumentSnapshot topicDoc = topicSnapshot.docs.first;
-        for (int i = 1; i <= 5; i++) {
+        for (int i = 1; i <= 2; i++) {
           String topicKey = 'topic$i';
-          topics.add(topicDoc[topicKey] ?? ''); // topics에 topic1~5를 추가
+          topics.add(topicDoc[topicKey] ?? '');
         }
       } else {
         print("Topic document does not exist");
@@ -83,21 +87,48 @@ class _InterviewScreenState extends State<InterviewScreen> {
           await questionDocRef.collection('comment').get();
       if (commentSnapshot.docs.isNotEmpty) {
         DocumentSnapshot commentDoc = commentSnapshot.docs.first;
-        for (int i = 1; i <= 5; i++) {
+        for (int i = 1; i <= 2; i++) {
           String questionKey = 'question$i';
-          questions
-              .add(commentDoc[questionKey] ?? ''); // questions에 question1~5를 추가
+          questions.add(commentDoc[questionKey] ?? '');
         }
       } else {
         print("Comment document does not exist");
         return;
       }
 
-      setState(() {}); // UI 갱신
+      if (!isDisposed) {
+        setState(() {});
+      }
+
       print("Fetched topics: $topics");
       print("Fetched questions: $questions");
     } catch (e) {
       print("Error fetching questions: $e");
+    }
+  }
+
+  Future<void> fetchVideoUrls() async {
+    if (interviewId == null) return;
+
+    try {
+      DocumentSnapshot interviewDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('interviews')
+          .doc(interviewId)
+          .get();
+
+      if (interviewDoc.exists) {
+        for (int i = 1; i <= 2; i++) {
+          String? videoUrl = interviewDoc.get('videoUrl$i') as String?;
+          if (videoUrl != null) {
+            videoUrls.add(videoUrl);
+          }
+        }
+        setState(() {});
+      }
+    } catch (e) {
+      print("Error fetching video URLs: $e");
     }
   }
 
@@ -109,35 +140,39 @@ class _InterviewScreenState extends State<InterviewScreen> {
 
     if (!isRecording) {
       setState(() {
-        isRecording = true;
+        isRecording = true; // 즉시 녹화 상태로 업데이트
       });
       await _interviewService.startRecording();
     } else {
+      setState(() {
+        isRecording = false; // 즉시 녹화 중지 상태로 업데이트
+      });
+
       XFile? videoFile = await _interviewService.stopRecording();
 
       if (videoFile != null && interviewId != null) {
-        // 비디오가 5개 이상이면 더 이상 업로드하지 않음
-        if (videoUrls.length >= 5) {
-          print("Error: Maximum of 5 videos allowed.");
+        if (currentQuestionIndex >= questions.length) {
+          print("Error: All questions have been answered.");
           return;
         }
 
-        // 비디오 URL을 1번부터 저장하도록 변경
+        // 업로드 상태를 설정
+        setState(() {
+          isUploading = true;
+        });
+
         String videoUrl = await _interviewService.uploadVideoForInterview(
-            userId, interviewId!, videoFile, currentQuestionIndex + 1);
-
-        // 문제를 방지하기 위해 비디오 URL이 중복되지 않도록 확인하고 추가
-        if (!videoUrls.contains(videoUrl)) {
-          videoUrls.add(videoUrl);
-        }
-
-        print("Video URL added: $videoUrl");
-        print("videoUrls length after add: ${videoUrls.length}");
+          userId,
+          interviewId!,
+          videoFile,
+          currentQuestionIndex + 1,
+          questions[currentQuestionIndex],
+        );
 
         setState(() {
-          currentQuestionIndex = videoUrls
-              .length; // update currentQuestionIndex to match the new 1-based indexing
-          isRecording = false;
+          videoUrls.add(videoUrl); // 비디오 URL 추가
+          currentQuestionIndex++;
+          isUploading = false; // 업로드 상태 종료
         });
       } else {
         print("Error: Video file or interview ID is not available.");
@@ -147,6 +182,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
 
   @override
   void dispose() {
+    isDisposed = true;
     _interviewService.cameraController?.dispose();
     super.dispose();
   }
@@ -162,7 +198,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
           style: const TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 24,
-            color: Colors.white, // 단색 흰색으로 설정
+            color: Colors.white,
             shadows: [
               Shadow(
                 blurRadius: 4.0,
@@ -178,98 +214,116 @@ class _InterviewScreenState extends State<InterviewScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: currentQuestionIndex < topics.length
-            ? Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(16.0),
-                    margin: const EdgeInsets.symmetric(vertical: 8.0),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12.0),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.black26,
-                          blurRadius: 8.0,
-                          offset: Offset(0, 4),
-                        ),
-                      ],
-                      border: Border.all(color: Colors.grey, width: 2),
-                    ),
-                    child: Text(
-                      questions[currentQuestionIndex],
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  cameraInitialized
-                      ? Expanded(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: CameraPreview(
-                                _interviewService.cameraController!),
-                          ),
-                        )
-                      : const Center(child: CircularProgressIndicator()),
-                  const SizedBox(height: 20),
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isRecording ? Colors.red : Colors.grey,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    onPressed: recordAnswer,
-                    icon: Icon(
-                      isRecording ? Icons.stop : Icons.videocam,
-                      color: Colors.white,
-                    ),
-                    label: Text(
-                      isRecording ? "녹화 중지" : "녹화 시작",
-                      style: const TextStyle(fontSize: 16, color: Colors.white),
-                    ),
-                  ),
-                ],
-              )
-            : videoUrls.isNotEmpty
-                ? ListView.builder(
-                    itemCount: videoUrls.length,
-                    itemBuilder: (context, index) {
-                      return Card(
-                        elevation: 4,
-                        margin: const EdgeInsets.symmetric(vertical: 8),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: ListTile(
-                          leading: const Icon(Icons.play_circle_fill,
-                              color: Colors.deepPurple, size: 36),
-                          title: Text("Play Video ${index + 1}"),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => VideoPlayerScreen(
-                                  videoUrl: videoUrls[index],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      );
-                    },
-                  )
-                : const Center(
-                    child: CircularProgressIndicator(),
-                  ),
+            ? buildQuestionView()
+            : buildResultView(),
       ),
     );
+  }
+
+  Widget buildQuestionView() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16.0),
+          margin: const EdgeInsets.symmetric(vertical: 8.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12.0),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 8.0,
+                offset: Offset(0, 4),
+              ),
+            ],
+            border: Border.all(color: Colors.grey, width: 2),
+          ),
+          child: Text(
+            questions.isNotEmpty
+                ? questions[currentQuestionIndex]
+                : "Loading question...",
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        const SizedBox(height: 20),
+        cameraInitialized
+            ? Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: CameraPreview(_interviewService.cameraController!),
+                ),
+              )
+            : const Center(child: CircularProgressIndicator()),
+        const SizedBox(height: 20),
+        isUploading
+            ? const Center(
+                child: CircularProgressIndicator(),
+              )
+            : ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isRecording ? Colors.red : Colors.grey,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                onPressed: () async {
+                  if (!isDisposed) {
+                    await recordAnswer();
+                  }
+                },
+                icon: Icon(
+                  isRecording ? Icons.stop : Icons.videocam,
+                  color: Colors.white,
+                ),
+                label: Text(
+                  isRecording ? "녹화 중지" : "녹화 시작",
+                  style: const TextStyle(fontSize: 16, color: Colors.white),
+                ),
+              ),
+      ],
+    );
+  }
+
+  Widget buildResultView() {
+    return videoUrls.isNotEmpty
+        ? ListView.builder(
+            itemCount: videoUrls.length,
+            itemBuilder: (context, index) {
+              return Card(
+                elevation: 4,
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ListTile(
+                  leading: const Icon(Icons.play_circle_fill,
+                      color: Colors.deepPurple, size: 36),
+                  title: Text("Play Video ${index + 1}"),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => VideoPlayerScreen(
+                          videoUrl: videoUrls[index],
+                          question: questions[index],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
+          )
+        : const Center(
+            child: CircularProgressIndicator(),
+          );
   }
 }

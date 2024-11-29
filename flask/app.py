@@ -46,7 +46,7 @@ def generate_questions():
         logger.error(f"Error processing PDF: {e}")
         return jsonify({'error': 'Failed to analyze PDF'}), 500
 
-# 면접 피드백 분석 코드 (speak.py 내용)
+#시선처리
 @app.route('/analyze-speech', methods=['POST'])
 def analyze_speech():
     """면접자의 표정 및 시선 데이터를 받아 부드럽고 조언하는 방식으로 피드백 생성"""
@@ -83,6 +83,52 @@ def analyze_speech():
     except Exception as e:
         logger.error(f"Error: {e}")
         return jsonify({'error': str(e)}), 500
+    
+@app.route('/analyze-answer', methods=['POST'])
+def analyze_answer():
+    """
+    질문과 답변 데이터를 받아 OpenAI API를 통해 답변의 품질을 평가하고 피드백을 반환
+    """
+    try:
+        # 요청 데이터 확인
+        data = request.json
+        logger.debug(f"Received data for analyze-answer: {data}")
+
+        question = data.get('question', '')
+        answer = data.get('answer', '')
+
+        if not question or not answer:
+            return jsonify({'error': 'Both question and answer are required'}), 400
+
+        # OpenAI 프롬프트 생성
+        prompt = (
+            f"질문: {question}\n"
+            f"답변: {answer}\n"
+            "당신은 면접을 대비하는 새내기들을 위해 모의 면접을 담당하는 면접관입니다. 잘한 부분과 못한 부분은 솔직하게 말하고 답변의 품질을 평가하고 개선할 점을 포함한 피드백을 제공해주세요. 질문에 대해 이상한 답변일 경우 잘못된 답변이라고 말을 확실하게 해주세요"
+        )
+
+        logger.debug(f"Generated prompt: {prompt}")
+
+        # OpenAI API 호출
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "system", "content": "당신은 전문적인 평가자입니다."},
+                      {"role": "user", "content": prompt}],
+            max_tokens=900,
+            temperature=0.7,
+        )
+
+        # OpenAI 응답 데이터
+        feedback = response['choices'][0]['message']['content']
+        logger.debug(f"Generated feedback: {feedback}")
+
+        # 결과 반환
+        return jsonify({'feedback': feedback})
+
+    except Exception as e:
+        logger.error(f"Error in analyze-answer: {e}")
+        return jsonify({'error': str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)  # debug=True 추가로 디버그 모드 활성화
