@@ -2,7 +2,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class OpenAIService {
-  final String _flaskApiUrl = "http://192.168.0.38:5000/analyze-answer"; // Flask 서버 URL
+  final String _flaskApiUrl = "http://192.168.200.104:5000/analyze-answer"; // Flask 서버 URL
 
   /// Flask 서버를 통해 질문과 답변을 평가
   Future<String> evaluateAnswer({

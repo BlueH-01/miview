@@ -73,7 +73,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
           await questionDocRef.collection('topic').get();
       if (topicSnapshot.docs.isNotEmpty) {
         DocumentSnapshot topicDoc = topicSnapshot.docs.first;
-        for (int i = 1; i <= 2; i++) {
+        for (int i = 1; i <= 5; i++) {
           String topicKey = 'topic$i';
           topics.add(topicDoc[topicKey] ?? '');
         }
@@ -87,7 +87,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
           await questionDocRef.collection('comment').get();
       if (commentSnapshot.docs.isNotEmpty) {
         DocumentSnapshot commentDoc = commentSnapshot.docs.first;
-        for (int i = 1; i <= 2; i++) {
+        for (int i = 1; i <= 5; i++) {
           String questionKey = 'question$i';
           questions.add(commentDoc[questionKey] ?? '');
         }
@@ -119,7 +119,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
           .get();
 
       if (interviewDoc.exists) {
-        for (int i = 1; i <= 2; i++) {
+        for (int i = 1; i <= 5; i++) {
           String? videoUrl = interviewDoc.get('videoUrl$i') as String?;
           if (videoUrl != null) {
             videoUrls.add(videoUrl);

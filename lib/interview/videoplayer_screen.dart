@@ -28,6 +28,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   String _speechAnalysis = "대사 분석 중...";
   String _answerFeedback = "답변 분석 중...";
   bool _isProcessing = false;
+  bool _analysisComplete = false; // 모든 분석 완료 여부 추가
 
   @override
   void initState() {
@@ -47,28 +48,34 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   /// 비디오 플레이어 초기화
   void _initializeVideoPlayer() {
-  _controller = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl))
-    ..initialize().then((_) async {
-      if (!mounted) return;
-      setState(() {});
-      _controller.play();
+    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl))
+      ..initialize().then((_) async {
+        if (!mounted) return;
+        setState(() {});
+        _controller.play();
 
-      print("Debug: Starting processVideo");
-      await _processVideo();
+        print("Debug: Starting processVideo");
+        await _processVideo();
 
-      print("Debug: Starting analyzeSpeech");
-      await _analyzeSpeech();
+        print("Debug: Starting analyzeSpeech");
+        await _analyzeSpeech();
 
-      print("Debug: Starting analyzeAnswer");
-      await _analyzeAnswer();
-    }).catchError((error) {
-      if (!mounted) return;
-      setState(() {
-        _status = "Failed to initialize video player: $error";
+        print("Debug: Starting analyzeAnswer");
+        await _analyzeAnswer();
+
+        // 모든 분석이 완료되었음을 상태에 반영
+        if (mounted) {
+          setState(() {
+            _analysisComplete = true;
+          });
+        }
+      }).catchError((error) {
+        if (!mounted) return;
+        setState(() {
+          _status = "Failed to initialize video player: $error";
+        });
       });
-    });
-}
-
+  }
 
   /// 시선 분석 처리
   Future<void> _processVideo() async {
@@ -80,28 +87,23 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       final framesPath = await _checkService.extractFrames(widget.videoUrl);
       final frames = await _checkService.analyzeFrames(framesPath);
 
-      if (!mounted) return; // mounted 확인
+      if (!mounted) return;
       if (frames.isNotEmpty) {
         final feedback = await _checkService.sendToFlaskAPI(frames);
-        if (!mounted) return; // mounted 확인
         setState(() {
           _status = feedback;
         });
       } else {
-        if (!mounted) return; // mounted 확인
         setState(() {
           _status = "영상에서 얼굴을 인식할 수 없습니다.";
         });
       }
     } catch (e) {
-      if (!mounted) return; // mounted 확인
       setState(() {
         _status = "시선 분석 중 오류 발생: $e";
       });
     } finally {
-      if (mounted) {
-        setState(() => _isProcessing = false);
-      }
+      setState(() => _isProcessing = false);
     }
   }
 
@@ -111,12 +113,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
     try {
       final transcript = await _answerService.processVideo(widget.videoUrl);
-      if (!mounted) return; // mounted 확인
       setState(() {
         _speechAnalysis = transcript;
       });
     } catch (e) {
-      if (!mounted) return; // mounted 확인
       setState(() {
         _speechAnalysis = "대사 분석 오류 발생: $e";
       });
@@ -128,34 +128,23 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     setState(() => _answerFeedback = "답변 분석 중...");
 
     try {
-    // 디버그: 입력 데이터 출력
-    print("Debug: Question passed to analyzeAnswer: ${widget.question}");
-    print("Debug: Speech analysis result passed as Answer: $_speechAnalysis");
+      print("Debug: Question passed to analyzeAnswer: ${widget.question}");
+      print("Debug: Speech analysis result passed as Answer: $_speechAnalysis");
 
-    final feedback = await _openAIService.evaluateAnswer(
-      question: widget.question,
-      answer: _speechAnalysis,
-    );
+      final feedback = await _openAIService.evaluateAnswer(
+        question: widget.question,
+        answer: _speechAnalysis,
+      );
 
-    if (!mounted) return; // mounted 확인
-
-    // 디버그: Flask 서버에서 반환된 피드백 확인
-    print("Debug: Feedback received from Flask API: $feedback");
-
-    setState(() {
-      _answerFeedback = feedback;
-    });
-  } catch (e) {
-    if (!mounted) return; // mounted 확인
-
-    // 디버그: 에러 메시지 출력
-    print("Debug: Error during answer analysis: $e");
-
-    setState(() {
-      _answerFeedback = "답변 분석 오류 발생: $e";
-    });
+      setState(() {
+        _answerFeedback = feedback;
+      });
+    } catch (e) {
+      setState(() {
+        _answerFeedback = "답변 분석 오류 발생: $e";
+      });
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -184,59 +173,75 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
               children: [
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey.shade800,
+                    backgroundColor: _analysisComplete
+                        ? Colors.green
+                        : Colors.grey.shade800,
                     foregroundColor: Colors.white,
                   ),
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) {
-                        return AlertDialog(
-                          title: const Text('분석 결과'),
-                          content: SingleChildScrollView(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  '1. 시선 분석 결과:',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                  onPressed: _analysisComplete
+                      ? () {
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: const Text('분석 결과'),
+                                content: SingleChildScrollView(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        '1. 시선 분석 결과:',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      Text(
+                                        _status,
+                                        style: const TextStyle(
+                                            fontSize: 16, height: 1.6),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      const Text(
+                                        '2. 대사 분석 결과:',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      Text(
+                                        _speechAnalysis,
+                                        style: const TextStyle(
+                                            fontSize: 16, height: 1.6),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      const Text(
+                                        '3. 답변 분석 결과:',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      Text(
+                                        _answerFeedback,
+                                        style: const TextStyle(
+                                            fontSize: 16, height: 1.6),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                                Text(
-                                  _status,
-                                  style: const TextStyle(fontSize: 16, height: 1.6),
-                                ),
-                                const SizedBox(height: 10),
-                                const Text(
-                                  '2. 대사 분석 결과:',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                Text(
-                                  _speechAnalysis,
-                                  style: const TextStyle(fontSize: 16, height: 1.6),
-                                ),
-                                const SizedBox(height: 10),
-                                const Text(
-                                  '3. 답변 분석 결과:',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                Text(
-                                  _answerFeedback,
-                                  style: const TextStyle(fontSize: 16, height: 1.6),
-                                ),
-                              ],
-                            ),
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              child: const Text('닫기'),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                  child: const Text('분석 결과 보기'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(),
+                                    child: const Text('닫기'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        }
+                      : null, // 분석이 완료되지 않으면 비활성화
+                  child: Text(
+                    _analysisComplete
+                        ? '분석 결과 보기'
+                        : '분석 중...',
+                  ),
                 ),
                 const SizedBox(height: 10),
                 VideoProgressIndicator(_controller, allowScrubbing: true),
@@ -245,7 +250,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                   children: [
                     IconButton(
                       icon: Icon(
-                        _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
+                        _controller.value.isPlaying
+                            ? Icons.pause
+                            : Icons.play_arrow,
                       ),
                       onPressed: () {
                         setState(() {

@@ -67,7 +67,7 @@ class CheckService {
 
   /// 분석 결과를 Flask API에 전송
   Future<String> sendToFlaskAPI(List<Map<String, dynamic>> detectedFrames) async {
-    const String flaskEndpoint = "http://192.168.0.38:5000/analyze-speech";
+    const String flaskEndpoint = "http://192.168.200.104:5000/analyze-speech";
 
     final requestData = {"frames": detectedFrames};
 
